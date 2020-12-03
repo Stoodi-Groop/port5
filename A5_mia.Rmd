@@ -72,6 +72,14 @@ print(inf2)
 regtest(m21)
 ranktest(m21)
 funnel(m21)
+
+sum(df1$SAMPLE_SIZE_HC + df1$SAMPLE_SIZE_SZ, na.rm = T)
+
+sum(df1$SAMPLE_SIZE_HC, na.rm = T)
+
+sum(df1$SAMPLE_SIZE_SZ, na.rm = T)
+
+
 ```
 
 
@@ -84,7 +92,6 @@ port3SZ <- port3 %>% subset(Diagnosis == 1)
 port3HC <- aggregate(cbind(mean, sd) ~ID, data = port3HC, mean)
 port3SZ <- aggregate(cbind(mean, sd) ~ID, data = port3SZ, mean)
 
-
 df_pitch <- df_pitch %>% 
   add_row(ArticleID = 49, StudyID = 51, Article = "port3_data", 
           SAMPLE_SIZE_HC = nrow(port3HC), SAMPLE_SIZE_SZ = nrow(port3SZ), 
@@ -94,6 +101,7 @@ df_pitch <- df_pitch %>%
 #doing it all again
 df_pitch_es = escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M , 
                sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df_pitch)
+
 
 df_pitch1<- df_pitch_es %>% subset(StudyID !=11)
 
@@ -109,5 +117,10 @@ plot(inf3)
 regtest(m3)
 ranktest(m3)
 funnel(m3)
+
+sum(df_pitch$SAMPLE_SIZE_HC, na.rm = T)
+
+sum(df_pitch$SAMPLE_SIZE_SZ, na.rm = T)
 ```
+
 
