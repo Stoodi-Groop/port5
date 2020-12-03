@@ -36,7 +36,7 @@ inf<-influence(m2)
 plot(inf)
 print(inf)
 
-df1<- df %>% subset(StudyID !=13)
+df1<- df %>% subset(StudyID !=11)
 
 WM_d1 <- escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M, sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df1)
 
@@ -47,10 +47,43 @@ inf2<-influence(m21)
 plot(inf2)
 print(inf2)
 
+
+df1<- df %>% subset(StudyID !=11)
+
+WM_d1 <- escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M, sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df1)
+
+m21 <-rma (yi, vi, data = WM_d1, slab = StudyID)
+summary(m21)
+forest(m21)
+inf2<-influence(m21)
+plot(inf2)
+print(inf2)
+
+
+regtest(m2)
+ranktest(m21)
+funnel(m21)
+
+df2<- df %>% subset(StudyID !=15 & StudyID !=5)
+
+WM_d2 <- escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M, sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df2)
+
+m22 <-rma (yi, vi, data = WM_d2, slab = StudyID)
+summary(m22)
+forest(m22)
+inf3<-influence(m22)
+plot(inf3)
+print(inf3)
+
 WM_d2 <- escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PA_DUR_HC_M, m2i= PA_DUR_SZ_M, sd1i= PA_DUR__HC_SD, sd2i= PA_DUR_SZ_SD, data = df)
 
 m3 <-rma (yi, vi, data = WM_d2, slab = StudyID)
 forest(m3)
+
+
+
+```
+```{r}
 
 ```
 
