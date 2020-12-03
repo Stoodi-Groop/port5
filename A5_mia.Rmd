@@ -48,11 +48,34 @@ df_pitch <- df %>%
 df_es = escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M , 
                sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df)
 
-#models
-m1 = m2 <-rma (yi, vi, data = df_es, slab = StudyID)
+#model 1
+m1 <- rma (yi, vi, data = df_es, slab = StudyID)
 
+#plot
 forest(m1)
 
+#subsetting, 
+df1<- df %>% subset(StudyID !=11)
+
+#re-calculating
+WM_d1 <- escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M, sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df1)
+
+#model 2
+m21 <-rma (yi, vi, data = WM_d1, slab = StudyID)
+summary(m21)
+forest(m21)
+inf2<-influence(m21)
+plot(inf2)
+print(inf2)
+
+#other stuff
+regtest(m21)
+ranktest(m21)
+funnel(m21)
+```
+
+
+```{r}
 #adding our own data 
 port3 <- read_csv("real_clean_data_yes-kopi.csv")
 port3HC <- port3 %>% subset(Diagnosis == 0) 
@@ -68,6 +91,23 @@ df_pitch <- df_pitch %>%
           PITCH_F0_HC_M = mean(port3HC$mean), PITCH_F0_SZ_M = mean(port3SZ$mean), 
           PITCH_F0_HC_SD = mean(port3HC$sd), PITCH_F0_SZ_SD = mean(port3SZ$sd))
 
+#doing it all again
+df_pitch_es = escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M , 
+               sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df_pitch)
 
+df_pitch1<- df_pitch_es %>% subset(StudyID !=11)
+
+m3 <- rma (yi, vi, data = df_pitch1, slab = StudyID)
+
+summary(m3)
+forest(m3)
+
+inf3 <- influence(m3)
+plot(inf3)
+
+#other stuff
+regtest(m3)
+ranktest(m3)
+funnel(m3)
 ```
 
