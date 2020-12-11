@@ -1,0 +1,136 @@
+---
+title: "Assignment 5 - Meta-analysis of pitch in schizophrenia"
+author: "Riccardo Fusaroli"
+date: "3/7/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Building on the shoulders of giants: meta-analysis
+
+## Questions to be answered
+1. What is the current evidence for distinctive vocal patterns in schizophrenia? Report how many papers report quantitative estimates, comment on what percentage of the overall studies reviewed they represent (see PRISMA chart) your method to analyze them, the estimated effect size of the difference (mean effect size and standard error) and forest plots representing it. N.B. Only measures of pitch mean and pitch sd are required for the assignment (all the other measures have been removed from the dataset for the sake of simplicity). 
+
+2. Do the results match your own analysis from Assignment 3? If you add your results to the meta-analysis, do the estimated effect sizes change? Report the new estimates and the new forest plots.
+
+3. Assess the quality of the literature: report and comment on heterogeneity of the studies (tau, I2), on publication bias (funnel plot), and on influential studies.
+
+## Tips on the process to follow:
+
+- Download the data on all published articles analyzing voice in schizophrenia and the prisma chart as reference of all articles found and reviewed
+Data: https://www.dropbox.com/s/0l9ur0gaabr80a8/Matrix_MetaAnalysis_Diagnosis_updated290719.xlsx?dl=0
+Prisma chart: https://www.dropbox.com/s/vbjf6ff73dv9tru/PRISMA%202009%20flow%20diagram_PP.pptx?dl=0 
+- Look through the dataset to find out which columns to use, and if there is any additional information written as comments (real world data is always messy!).
+    * Hint: PITCH_F0M and PITCH_F0SD group of variables are what you need
+- Following the procedure in the slides calculate effect size and standard error of the effect size per each study. N.B. we focus on pitch mean and pitch standard deviation.
+ . first try using lmer (to connect to what you know of mixed effects models)
+ . then use rma() (to get some juicy additional statistics)
+
+- Build a forest plot of the results (forest(model))
+ 
+- Go back to Assignment 3, add your own study to the data table, and re-run meta-analysis. Do the results change?
+
+- Now look at the output of rma() and check tau and I2
+
+(Andrea)
+```{r}
+pacman::p_load(tidyverse, readxl, metafor, tibble)
+#loading data
+df <- read_excel("port_5_data.xlsx")
+
+df_pitch <- df %>% 
+  select(ArticleID, StudyID, Article, SAMPLE_SIZE_HC, SAMPLE_SIZE_SZ, PITCH_F0_HC_M, PITCH_F0_SZ_M, PITCH_F0_HC_SD, PITCH_F0_SZ_SD)
+
+
+#calculating effect size
+df_es = escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M , 
+               sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df)
+
+#model 1
+m1 <- rma (yi, vi, data = df_es, slab = StudyID)
+```
+
+(Anna)
+```{r}
+#plot
+forest(m1)
+
+#subsetting, 
+df1<- df %>% subset(StudyID !=11)
+
+#re-calculating
+WM_d1 <- escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M, sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df1)
+
+#model 2
+m21 <-rma (yi, vi, data = WM_d1, slab = StudyID)
+summary(m21)
+forest(m21)
+inf2<-influence(m21)
+plot(inf2)
+print(inf2)
+
+#other stuff
+regtest(m21)
+ranktest(m21)
+funnel(m21)
+
+sum(df1$SAMPLE_SIZE_HC + df1$SAMPLE_SIZE_SZ, na.rm = T)
+
+sum(df1$SAMPLE_SIZE_HC, na.rm = T)
+
+sum(df1$SAMPLE_SIZE_SZ, na.rm = T)
+
+
+```
+
+(Helle)
+```{r}
+#adding our own data 
+port3 <- read_csv("real_clean_data_yes-kopi.csv")
+port3HC <- port3 %>% subset(Diagnosis == 0) 
+port3SZ <- port3 %>% subset(Diagnosis == 1)
+
+port3HC <- aggregate(cbind(mean, sd) ~ID, data = port3HC, mean)
+port3SZ <- aggregate(cbind(mean, sd) ~ID, data = port3SZ, mean)
+```
+
+(Maria)
+```{r}
+df_pitch <- df_pitch %>% 
+  add_row(ArticleID = 49, StudyID = 51, Article = "port3_data", 
+          SAMPLE_SIZE_HC = nrow(port3HC), SAMPLE_SIZE_SZ = nrow(port3SZ), 
+          PITCH_F0_HC_M = mean(port3HC$mean), PITCH_F0_SZ_M = mean(port3SZ$mean), 
+          PITCH_F0_HC_SD = mean(port3HC$sd), PITCH_F0_SZ_SD = mean(port3SZ$sd))
+
+#doing it all again
+df_pitch_es = escalc(measure = 'SMD', n1i= SAMPLE_SIZE_HC, n2i= SAMPLE_SIZE_SZ, m1i= PITCH_F0_HC_M, m2i= PITCH_F0_SZ_M , 
+               sd1i= PITCH_F0_HC_SD, sd2i= PITCH_F0_SZ_SD, data = df_pitch)
+
+
+df_pitch1<- df_pitch_es %>% subset(StudyID !=11)
+```
+
+(Mia)
+```{r}
+m3 <- rma (yi, vi, data = df_pitch1, slab = StudyID)
+
+summary(m3)
+forest(m3)
+
+inf3 <- influence(m3)
+plot(inf3)
+
+#other stuff
+regtest(m3)
+ranktest(m3)
+funnel(m3)
+
+sum(df_pitch$SAMPLE_SIZE_HC, na.rm = T)
+
+sum(df_pitch$SAMPLE_SIZE_SZ, na.rm = T)
+```
+
+
